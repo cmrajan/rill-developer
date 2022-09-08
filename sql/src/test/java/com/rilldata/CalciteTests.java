@@ -2,6 +2,7 @@ package com.rilldata;
 
 import com.rilldata.calcite.CalciteToolbox;
 import com.rilldata.calcite.extensions.SqlCreateMetric;
+import com.rilldata.calcite.extensions.SqlCreateSource;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.dialect.H2SqlDialect;
 import org.apache.calcite.sql.parser.SqlParseException;
@@ -66,7 +67,7 @@ public class CalciteTests
   {
     SqlCreateMetric sqlCreateMetric = null;
     try {
-      sqlCreateMetric = calciteToolbox.parseModelingQuery(modelingQuery);
+      sqlCreateMetric = (SqlCreateMetric) calciteToolbox.parseQuery(modelingQuery);
     } catch (SqlParseException e) {
       if (parseExceptionMatch.isEmpty() || !e.getMessage().contains(parseExceptionMatch.get())) {
         throw new RuntimeException(e);
@@ -85,6 +86,55 @@ public class CalciteTests
     }
   }
 
+  @ParameterizedTest
+  @MethodSource("testCreateSourceParams")
+  public void testCreateSourceParsing(String createSourceQuery, Optional<String> parseExceptionMatch)
+  {
+    SqlCreateSource sqlCreateSource = null;
+    try {
+      sqlCreateSource = (SqlCreateSource) calciteToolbox.parseQuery(createSourceQuery);
+    } catch (SqlParseException e) {
+      if (parseExceptionMatch.isEmpty() || !e.getMessage().contains(parseExceptionMatch.get())) {
+        throw new RuntimeException(e);
+      }
+    }
+    System.out.println(sqlCreateSource);
+  }
+
+  private static Stream<Arguments> testCreateSourceParams()
+  {
+    return Stream.of(
+        Arguments.of("""
+                CREATE SOURCE clicks_raw
+                WITH (
+                    'connector' = 's3',
+                    'prefix' = 's3://my_bucket/a.csv', // comments are ignored
+                	  'FORMAT' = 'CSV'
+                )""",
+            Optional.empty()
+        ),
+        Arguments.of("""
+                CREATE SOURCE clicks_raw
+                WITH (
+                    -- comments are ignored
+                    'connector' = 's3',
+                    'prefix' = 's3://my_bucket/a.csv', -- comments are ignored
+                	  'FORMAT' = 'CSV'
+                )""",
+            Optional.empty()
+        ),
+        Arguments.of("""
+                CREATE SOURCE clicks_raw
+                WITH (
+                    'connector' = 's3',
+                    'aws.access.key' = env('S3_ACCESS_KEY'),
+                    'aws.secret.key' = env('S3_SECRET_KEY)',
+                    'prefix' = 's3://my_bucket/*.csv'
+                )""",
+            Optional.empty()
+        )
+    );
+  }
   @ParameterizedTest
   @MethodSource("testQueryExpansionParams")
   public void testQueryExpansion(String query, String expandedQuery, Optional<String> exceptionMessage)
