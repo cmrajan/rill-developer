@@ -109,7 +109,7 @@ public class CalciteTests
                 WITH (
                     'connector' = 's3',
                     'prefix' = 's3://my_bucket/a.csv', // comments are ignored
-                	  'FORMAT' = 'CSV'
+                    'FORMAT' = 'CSV'
                 )""",
             Optional.empty()
         ),
@@ -119,7 +119,7 @@ public class CalciteTests
                     -- comments are ignored
                     'connector' = 's3',
                     'prefix' = 's3://my_bucket/a.csv', -- comments are ignored
-                	  'FORMAT' = 'CSV'
+                    'FORMAT' = 'CSV'
                 )""",
             Optional.empty()
         ),
@@ -316,8 +316,9 @@ public class CalciteTests
     return Stream.of(
         Arguments.of("""
                 CREATE METRICS VIEW METRICS_VIEW
-                DIMENSIONS
+                DIMENSIONS // comments are ignored
                 DIM1, ceil("MET1") AS DIM3, DIM2
+                -- comments are ignored
                 MEASURES
                 COUNT(DISTINCT DIM1) AS M_DIST,
                 AVG(DISTINCT MET1) AS M_AVG
