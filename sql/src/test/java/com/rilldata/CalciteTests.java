@@ -122,6 +122,7 @@ public class CalciteTests
                 )""",
             Optional.empty()
         ),
+        // TODO this should pass
         Arguments.of("""
                 CREATE SOURCE clicks_raw
                 WITH (
